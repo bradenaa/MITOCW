@@ -470,10 +470,14 @@ def play_game(word_list):
     """
     
     number_of_hands = int(input('Enter total number of hands: '))
+    handCount = 1
     totalScore = 0
     
     while number_of_hands > 0:
         hand = deal_hand(HAND_SIZE)
+        print("==============================================================")
+        print("             This is hand number", handCount)
+        print("==============================================================")
         display_hand(hand)
         
 #        Substitute loop
@@ -508,20 +512,27 @@ def play_game(word_list):
             
             handScore = play_hand(hand, word_list)
             
-            replay = str(input("Would you like to replay the hand?")).lower()
-            if replay == 'yes':
-                playHandAgain = True
-            elif replay == "no":
-                totalScore += handScore
-                playHandAgain = False
-            else:
-                print("Please response with a 'yes' or a 'no'")
+
+            validResponse = False
+            while validResponse == False:
+                replay = str(input("Would you like to replay the hand?")).lower()
+                if replay == 'yes':
+                    validResponse = True
+                    playHandAgain = True
+                elif replay == "no":
+                    handCount += 1
+                    totalScore += handScore
+                    validResponse = True
+                    playHandAgain = False
+                else:
+                    print("Please response with a 'yes' or a 'no'")
+                    validResponse = False
             
             
 #        DECREMENT
         number_of_hands -= 1
     
-    print("------------------------")
+    print("-------------")
     print("Total score over all hands:", totalScore)
         
 
