@@ -70,7 +70,8 @@ class SubMessage(object):
             self.message_text (string, determined by input text)
             self.valid_words (list, determined using helper function load_words)
         '''
-        pass #delete this line and replace with your code here
+        self.message_text = text
+        self.valid_words = load_words(WORDLIST_FILENAME)
     
     def get_message_text(self):
         '''
@@ -78,8 +79,8 @@ class SubMessage(object):
         
         Returns: self.message_text
         '''
-        pass #delete this line and replace with your code here
-
+        return self.message_text
+        
     def get_valid_words(self):
         '''
         Used to safely access a copy of self.valid_words outside of the class.
@@ -87,7 +88,8 @@ class SubMessage(object):
         
         Returns: a COPY of self.valid_words
         '''
-        pass #delete this line and replace with your code here
+        return self.valid_words[:]
+        
                 
     def build_transpose_dict(self, vowels_permutation):
         '''
@@ -108,8 +110,28 @@ class SubMessage(object):
         Returns: a dictionary mapping a letter (string) to 
                  another letter (string). 
         '''
+            
+        letters_lower = string.ascii_lowercase
+        new_letters = ''
+        i = 0
+        for l in letters_lower:
+            if l in vowels_permutation:
+                new_letters += vowels_permutation[i]
+                i += 1
+            elif l not in vowels_permutation:
+                new_letters += l
+        new_letters_upper = new_letters.upper()
         
-        pass #delete this line and replace with your code here
+        all_letters = new_letters + new_letters_upper
+        letters_dict = {}
+        i2 = 0
+        for l in string.ascii_letters:
+            letters_dict[l] = all_letters[i2]
+            i2 += 1
+
+        self.letters_dict = letters_dict
+        return self.letters_dict
+        
     
     def apply_transpose(self, transpose_dict):
         '''
@@ -119,7 +141,16 @@ class SubMessage(object):
         on the dictionary
         '''
         
-        pass #delete this line and replace with your code here
+        encrypted_text = ''
+        for char in self.message_text:
+            if char in transpose_dict:
+                encrypted_text += transpose_dict[char]
+            elif char not in transpose_dict:
+                encrypted_text += char
+
+        self.encrypted_text = encrypted_text
+        return self.encrypted_text
+        
         
 class EncryptedSubMessage(SubMessage):
     def __init__(self, text):
@@ -132,7 +163,7 @@ class EncryptedSubMessage(SubMessage):
             self.message_text (string, determined by input text)
             self.valid_words (list, determined using helper function load_words)
         '''
-        pass #delete this line and replace with your code here
+        SubMessage.__init__(self, text)
 
     def decrypt_message(self):
         '''
@@ -152,19 +183,68 @@ class EncryptedSubMessage(SubMessage):
         
         Hint: use your function from Part 4A
         '''
-        pass #delete this line and replace with your code here
-    
+        max_valid_words = 0
+        decrypted_text = ''
+        best_vowel_perm = ''
+        
+        perm_list = get_permutations('aeiou')
+        
+        for perm in perm_list:
+            SubMessage.build_transpose_dict(self, perm)
+            SubMessage.apply_transpose(self, self.letters_dict)
+            
+            valid_words = 0
+            for word in self.encrypted_text.split():
+                if is_word(self.valid_words, word):
+                    valid_words += 1
+            
+            if valid_words >= max_valid_words:
+                decrypted_text = self.encrypted_text
+                best_vowel_perm = perm
+                max_valid_words = valid_words
+        
+        self.decrypted_message_text = decrypted_text
+        return self.decrypted_message_text
+        
 
 if __name__ == '__main__':
 
     # Example test case
     message = SubMessage("Hello World!")
     permutation = "eaiuo"
-    enc_dict = message.build_transpose_dict(permutation)
+    dict1 = message.build_transpose_dict(permutation)
     print("Original message:", message.get_message_text(), "Permutation:", permutation)
     print("Expected encryption:", "Hallu Wurld!")
-    print("Actual encryption:", message.apply_transpose(enc_dict))
-    enc_message = EncryptedSubMessage(message.apply_transpose(enc_dict))
+    print("Actual encryption:", message.apply_transpose(dict1))
+    enc_message = EncryptedSubMessage(message.apply_transpose(dict1))
     print("Decrypted message:", enc_message.decrypt_message())
      
     #TODO: WRITE YOUR TEST CASES HERE
+    
+    print()
+    print('+++++++++++++++++++++++++++++++++++++++')
+    print()
+    
+    message2 = SubMessage("What a great day it is!")
+    permutation2 = 'uieao'
+    dict2 = message2.build_transpose_dict(permutation2)
+    print("Original message:", message2.get_message_text(), "Permutation:", permutation2)
+    print("Expected encryption:", "Whet e graet dey it is!")
+    print("Actual encryption:", message2.apply_transpose(dict2))
+    encrypted_message2 = EncryptedSubMessage(message2.apply_transpose(dict2))
+    print("Decrypted message:", encrypted_message2.decrypt_message())
+    
+    
+    print()
+    print('+++++++++++++++++++++++++++++++++++++++')
+    print()
+    
+    message3 = SubMessage("Even if it is a little dry and windy, it is still very warm out!")
+    permutation3 = 'eaoui'
+    dict3 = message3.build_transpose_dict(permutation2)
+    print("Original message:", message3.get_message_text(), "Permutation:", permutation3)
+    print("Expected encryption:", "Whet e graet dey it is!")
+    print("Actual encryption:", message3.apply_transpose(dict3))
+    encrypted_message3 = EncryptedSubMessage(message3.apply_transpose(dict3))
+    print("Decrypted message:", encrypted_message3.decrypt_message())
+    

@@ -70,7 +70,9 @@ class Message(object):
             self.message_text (string, determined by input text)
             self.valid_words (list, determined using helper function load_words)
         '''
-        pass #delete this line and replace with your code here
+        
+        self.message_text = text
+        self.valid_words = load_words(WORDLIST_FILENAME)
 
     def get_message_text(self):
         '''
@@ -78,7 +80,8 @@ class Message(object):
         
         Returns: self.message_text
         '''
-        pass #delete this line and replace with your code here
+        return self.message_text
+    
 
     def get_valid_words(self):
         '''
@@ -87,7 +90,8 @@ class Message(object):
         
         Returns: a COPY of self.valid_words
         '''
-        pass #delete this line and replace with your code here
+        return self.valid_words[:]
+
 
     def build_shift_dict(self, shift):
         '''
@@ -103,7 +107,25 @@ class Message(object):
         Returns: a dictionary mapping a letter (string) to 
                  another letter (string). 
         '''
-        pass #delete this line and replace with your code here
+        if shift >= 26 or shift < 0:
+            return print("Please select a shift from 0 to 25")
+        else:
+            self.encryption_dict = {}
+            
+            letters = string.ascii_lowercase
+            letters_seg1 = letters[0:shift]
+            letters_seg2 = letters[shift:len(letters)]
+            letters_shifted_low = letters_seg2 + letters_seg1
+            letters_shifted_upper = letters_shifted_low.upper()
+            
+            letters_shifted = letters_shifted_low + letters_shifted_upper
+            
+            index = 0
+            for l in string.ascii_letters:
+                self.encryption_dict[l] = letters_shifted[index]
+                index += 1
+        
+        return self.encryption_dict
 
     def apply_shift(self, shift):
         '''
@@ -117,8 +139,17 @@ class Message(object):
         Returns: the message text (string) in which every character is shifted
              down the alphabet by the input shift
         '''
-        pass #delete this line and replace with your code here
-
+        
+        self.message_text_encrypted = ''
+        for char in self.message_text:
+            if char in self.encryption_dict:
+                self.message_text_encrypted += self.encryption_dict[char]
+            elif char not in self.encryption_dict:
+                self.message_text_encrypted += char
+        
+        return self.message_text_encrypted
+        
+        
 class PlaintextMessage(Message):
     def __init__(self, text, shift):
         '''
@@ -135,7 +166,10 @@ class PlaintextMessage(Message):
             self.message_text_encrypted (string, created using shift)
 
         '''
-        pass #delete this line and replace with your code here
+        Message.__init__(self, text)
+        Message.build_shift_dict(self, shift)
+        Message.apply_shift(self, shift)
+        self.shift = shift
 
     def get_shift(self):
         '''
@@ -143,7 +177,7 @@ class PlaintextMessage(Message):
         
         Returns: self.shift
         '''
-        pass #delete this line and replace with your code here
+        return self.shift
 
     def get_encryption_dict(self):
         '''
@@ -151,15 +185,15 @@ class PlaintextMessage(Message):
         
         Returns: a COPY of self.encryption_dict
         '''
-        pass #delete this line and replace with your code here
-
+        return self.encryption_dict[:]
+        
     def get_message_text_encrypted(self):
         '''
         Used to safely access self.message_text_encrypted outside of the class
         
         Returns: self.message_text_encrypted
         '''
-        pass #delete this line and replace with your code here
+        return self.message_text_encrypted
 
     def change_shift(self, shift):
         '''
@@ -171,7 +205,9 @@ class PlaintextMessage(Message):
 
         Returns: nothing
         '''
-        pass #delete this line and replace with your code here
+        self.shift = shift
+        Message.build_shift_dict(self, shift)
+        Message.apply_shift(self, self.message_text, shift)
 
 
 class CiphertextMessage(Message):
@@ -185,8 +221,8 @@ class CiphertextMessage(Message):
             self.message_text (string, determined by input text)
             self.valid_words (list, determined using helper function load_words)
         '''
-        pass #delete this line and replace with your code here
-
+        Message.__init__(self, text)
+        
     def decrypt_message(self):
         '''
         Decrypt self.message_text by trying every possible shift value
@@ -203,22 +239,80 @@ class CiphertextMessage(Message):
         Returns: a tuple of the best shift value used to decrypt the message
         and the decrypted message text using that shift value
         '''
-        pass #delete this line and replace with your code here
+        max_valid_words = 0
+        best_shift = 0
+        decrypted_message = ''
+        
+        for i in range(0, 25):
+            Message.build_shift_dict(self, i)
+            Message.apply_shift(self, i)
+            
+            valid_words = 0
+            for word in self.message_text_encrypted.split():
+                if is_word(self.valid_words, word):
+                    valid_words += 1
+                
+            if valid_words > max_valid_words:
+                max_valid_words = valid_words
+                best_shift = i
+                decrypted_message = self.message_text_encrypted
+        
+        
+        return (best_shift, decrypted_message)
+        
 
 if __name__ == '__main__':
+    
+    print()
+    print("+++++++++++++++++++++++++++++++++")
+    print()
 
-#    #Example test case (PlaintextMessage)
-#    plaintext = PlaintextMessage('hello', 2)
-#    print('Expected Output: jgnnq')
-#    print('Actual Output:', plaintext.get_message_text_encrypted())
-#
+    #Example test case (PlaintextMessage)
+    plaintext = PlaintextMessage('hello', 2)
+    print('Expected Output: jgnnq')
+    print('Actual Output:', plaintext.get_message_text_encrypted())
+    
+    print('')
+
 #    #Example test case (CiphertextMessage)
-#    ciphertext = CiphertextMessage('jgnnq')
-#    print('Expected Output:', (24, 'hello'))
-#    print('Actual Output:', ciphertext.decrypt_message())
+    ciphertext = CiphertextMessage('jgnnq')
+    print('Expected Output:', (24, 'hello'))
+    print('Actual Output:', ciphertext.decrypt_message())
 
     #TODO: WRITE YOUR TEST CASES HERE
+    
+    print()
+    print("+++++++++++++++++++++++++++++++++")
+    print()
+    
+    #Example2 test case (PlaintextMessage)
+    plaintext2 = PlaintextMessage('hello I would like to shop today', 5)
+    print('Expected Output: mjqqt N btzqi qnpj yt xmtu ytifd')
+    print('Actual Output:', plaintext2.get_message_text_encrypted())
+    
+    print("")
+    
+    ciphertext2 = CiphertextMessage('mjqqt N btzqi qnpj yt xmtu ytifd')
+    print('Expected Output:', (21, 'hello I would like to shop today'))
+    print('Actual Output:', ciphertext2.decrypt_message())
+    
+    print()
+    print("+++++++++++++++++++++++++++++++++")
+    print()
+    
+    #Example3 test case (PlaintextMessage)
+    plaintext3 = PlaintextMessage('I have a to exercise today or I will be fat and unhealthy', 11)
+    print('Expected Output: T slgp l ez pipcntdp ezolj zc T htww mp qle lyo fysplwesj')
+    print('Actual Output:', plaintext3.get_message_text_encrypted())
+    
+    print("")
+    
+    ciphertext3 = CiphertextMessage('T slgp l ez pipcntdp ezolj zc T htww mp qle lyo fysplwesj')
+    print('Expected Output:', (15, 'I have a to exercise today or I will be fat and unhealthy'))
+    print('Actual Output:', ciphertext3.decrypt_message())
 
     #TODO: best shift value and unencrypted story 
+    story_cyphertext = CiphertextMessage(get_story_string())
+    print(story_cyphertext.decrypt_message())
     
-    pass #delete this line and replace with your code here
+    
