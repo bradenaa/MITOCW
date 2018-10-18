@@ -243,7 +243,7 @@ if __name__ == '__main__':
     permutation3 = 'eaoui'
     dict3 = message3.build_transpose_dict(permutation2)
     print("Original message:", message3.get_message_text(), "Permutation:", permutation3)
-    print("Expected encryption:", "Whet e graet dey it is!")
+    print("Expected encryption:", "Ivin ef et es u lettli dry und wendy, et es stell viry wurm aot!")
     print("Actual encryption:", message3.apply_transpose(dict3))
     encrypted_message3 = EncryptedSubMessage(message3.apply_transpose(dict3))
     print("Decrypted message:", encrypted_message3.decrypt_message())

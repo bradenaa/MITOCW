@@ -55,7 +55,31 @@ def process(url):
 # Problem 1
 
 # TODO: NewsStory
-
+    
+class NewsStory(object):
+    def __init__(self, guid, title, description, link, pubdate):
+        self.guid = guid
+        self.title = title
+        self.description = description
+        self.link = link
+        self.pubdate = pubdate
+    
+    def get_guid(self):
+        return self.guid
+    
+    def get_title(self):
+        return self.title
+    
+    def get_description(self):
+        return self.description
+    
+    def get_link(self):
+        return self.link
+    
+    def get_pubdate(self):
+        return self.pubdate
+    
+    
 
 #======================
 # Triggers
@@ -74,12 +98,56 @@ class Trigger(object):
 
 # Problem 2
 # TODO: PhraseTrigger
+        
+class PhraseTrigger(Trigger):
+    def __init__(self, phrase):
+        self.phrase = phrase.lower()
+        
+    def is_phrase_in(self, text):
+        text_copy = text
+        for char in string.punctuation:
+            if char in text_copy:
+                text_copy = text_copy.replace(char, ' ')
+                
+        word_list = text_copy.lower().split()
+        phrase_list = self.phrase.split()
+        
+#       Check that the individual words in text are the same in the phrase
+#       by comparing words in indexed list
+        for word in phrase_list:
+            if word not in word_list:
+                return False
+        
+#        Compare the word order or if phrase isn't seperated from other letters 
+#        by removing spacing and comparing sequential letters
+        if ''.join(phrase_list) not in ''.join(word_list):
+            return False
+
+        return True
+
+        
 
 # Problem 3
 # TODO: TitleTrigger
+        
+class TitleTrigger(PhraseTrigger):
+    def __init__(self, phrase):
+        PhraseTrigger.__init__(self, phrase)
+    
+    def evaluate(self, story):
+        return PhraseTrigger.is_phrase_in(self, story.get_title())
+    
+        
 
 # Problem 4
 # TODO: DescriptionTrigger
+        
+class DescriptionTrigger(PhraseTrigger):
+    def __init__(self, phrase):
+        PhraseTrigger.__init__(self, phrase)
+    
+    def evaluate(self, story):
+        return PhraseTrigger.is_phrase_in(self, story.get_description())
 
 # TIME TRIGGERS
 
@@ -88,21 +156,63 @@ class Trigger(object):
 # Constructor:
 #        Input: Time has to be in EST and in the format of "%d %b %Y %H:%M:%S".
 #        Convert time from string to a datetime before saving it as an attribute.
+        
+class TimeTrigger(Trigger):
+    def __init__(self, time):
+            self.time = datetime.strptime(time, "%d %b %Y %H:%M:%S")
+            self.time = self.time.replace(tzinfo=pytz.timezone("EST"))
 
 # Problem 6
 # TODO: BeforeTrigger and AfterTrigger
+            
+class BeforeTrigger(TimeTrigger):
+    def __init__(self, time):
+        TimeTrigger.__init__(self, time)
+        
+    def evaluate(self, story):
+        return story.get_pubdate().replace(tzinfo=pytz.timezone("EST")) < self.time
+        
+class AfterTrigger(TimeTrigger):
+    def __init__(self, time):
+        TimeTrigger.__init__(self, time)
+        
+    def evaluate(self, story):
+        return story.get_pubdate().replace(tzinfo=pytz.timezone("EST")) > self.time
 
 
 # COMPOSITE TRIGGERS
 
 # Problem 7
 # TODO: NotTrigger
+        
+class NotTrigger(Trigger):
+    def __init__(self, trigger):
+        self.trigger = trigger
+        
+    def evaluate(self, story):
+        return not self.trigger.evaluate(story)
 
 # Problem 8
 # TODO: AndTrigger
 
+class AndTrigger(Trigger):
+    def __init__(self, trigger1, trigger2):
+        self.trigger1 = trigger1
+        self.trigger2 = trigger2
+    
+    def evaluate(self, story):
+        return self.trigger1.evaluate(story) and self.trigger2.evaluate(story)
+
 # Problem 9
 # TODO: OrTrigger
+        
+class OrTrigger(Trigger):
+    def __init__(self, trigger1, trigger2):
+        self.trigger1 = trigger1
+        self.trigger2 = trigger2
+    
+    def evaluate(self, story):
+        return self.trigger1.evaluate(story) or self.trigger2.evaluate(story) 
 
 
 #======================
@@ -119,7 +229,14 @@ def filter_stories(stories, triggerlist):
     # TODO: Problem 10
     # This is a placeholder
     # (we're just returning all the stories, with no filtering)
-    return stories
+    
+    filtered_stories = []
+    for story in stories:
+        for trigger in triggerlist:
+            if trigger.evaluate(story):
+                filtered_stories.append(story)
+                
+    return filtered_stories
 
 
 
